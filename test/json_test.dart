@@ -4,6 +4,7 @@
 library json_test;
 
 import 'dart:convert';
+import 'package:protobuf/protobuf.dart' as protobuf;
 import 'package:test/test.dart';
 
 import 'mock_util.dart' show T;
@@ -34,6 +35,28 @@ main() {
     t.mergeFromJsonMap({"1": 123, "2": "hello"});
     checkMessage(t);
   });
+
+  test('testWriteToJsonProto3', () {
+    String json = example.writeToProto3Json();
+    checkJsonMapProto3(jsonDecode(json));
+  });
+
+  test('writeToJsonMapProto3', () {
+    Map m = example.writeToProto3JsonMap();
+    checkJsonMapProto3(m);
+  });
+
+  test('testMergeFromJsonProto3', () {
+    var t = new T();
+    t.mergeFromProto3Json('''{"val": 123, "str": "hello"}''');
+    checkMessage(t);
+  });
+
+  test('testMergeFromJsonMapProto3', () {
+    var t = new T();
+    t.mergeFromProto3JsonMap({"val": 123, "str": "hello"});
+    checkMessage(t);
+  });
 }
 
 checkJsonMap(Map m) {
@@ -45,4 +68,10 @@ checkJsonMap(Map m) {
 checkMessage(T t) {
   expect(t.val, 123);
   expect(t.str, "hello");
+}
+
+checkJsonMapProto3(Map m) {
+  expect(m.length, 2);
+  expect(m["val"], 123);
+  expect(m["str"], "hello");
 }
