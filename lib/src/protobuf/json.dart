@@ -5,6 +5,9 @@
 part of protobuf;
 
 Map<String, dynamic> _writeToJsonMap(_FieldSet fs) {
+  return _writeToJsonMapWithMapper(fs, (fi) => '${fi.tagNumber}');
+}
+
 Map<String, dynamic> _writeToProto3JsonMap(_FieldSet fs) {
   return _writeToJsonMapWithMapper(fs, (fi) => fi.name);
 }
@@ -14,6 +17,7 @@ Map<String, dynamic> _writeToJsonMapWithMapper(_FieldSet fs, Function mapper) {
     int baseType = PbFieldType._baseType(fieldType);
 
     if (_isRepeated(fieldType)) {
+      return new List.from(fieldValue.map((e) => convertToMap(e, baseType)));
     }
 
     switch (baseType) {
