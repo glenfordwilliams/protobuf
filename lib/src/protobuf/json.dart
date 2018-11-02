@@ -5,7 +5,19 @@
 part of protobuf;
 
 Map<String, dynamic> _writeToJsonMap(_FieldSet fs) {
+<<<<<<< HEAD
   convertToMap(dynamic fieldValue, int fieldType) {
+=======
+  return _writeToJsonMapWithMapper(fs, (fi) => '${fi.tagNumber}');
+}
+
+Map<String, dynamic> _writeToProto3JsonMap(_FieldSet fs) {
+  return _writeToJsonMapWithMapper(fs, (fi) => fi.name);
+}
+
+Map<String, dynamic> _writeToJsonMapWithMapper(_FieldSet fs, Function mapper) {
+  convertToMap(fieldValue, int fieldType) {
+>>>>>>> 49e56db0790235ec2964f193b5c4c5d5becd2ca8
     int baseType = PbFieldType._baseType(fieldType);
 
     if (_isRepeated(fieldType)) {
@@ -48,7 +60,7 @@ Map<String, dynamic> _writeToJsonMap(_FieldSet fs) {
     if (value == null || (value is List && value.isEmpty)) {
       continue; // It's missing, repeated, or an empty byte array.
     }
-    result['${fi.tagNumber}'] = convertToMap(value, fi.type);
+    result[mapper(fi)] = convertToMap(value, fi.type);
   }
   if (fs._hasExtensions) {
     for (int tagNumber in sorted(fs._extensions._tagNumbers)) {
@@ -57,7 +69,7 @@ Map<String, dynamic> _writeToJsonMap(_FieldSet fs) {
         continue; // It's repeated or an empty byte array.
       }
       var fi = fs._extensions._getInfoOrNull(tagNumber);
-      result['$tagNumber'] = convertToMap(value, fi.type);
+      result[mapper(fi)] = convertToMap(value, fi.type);
     }
   }
   return result;
@@ -67,10 +79,26 @@ Map<String, dynamic> _writeToJsonMap(_FieldSet fs) {
 // (Called recursively on nested messages.)
 void _mergeFromJsonMap(
     _FieldSet fs, Map<String, dynamic> json, ExtensionRegistry registry) {
+  return _mergeFromJsonMapWithMapper(
+      fs, json, registry, (meta, key) => meta.byTagAsString[key]);
+}
+
+// Merge fields from a previously decoded JSON object.
+// (Called recursively on nested messages.)
+void _mergeFromProto3JsonMap(
+    _FieldSet fs, Map<String, dynamic> json, ExtensionRegistry registry) {
+  return _mergeFromJsonMapWithMapper(
+      fs, json, registry, (meta, key) => meta.byName[key]);
+}
+
+// Merge fields from a previously decoded JSON object.
+// (Called recursively on nested messages.)
+void _mergeFromJsonMapWithMapper(_FieldSet fs, Map<String, dynamic> json,
+    ExtensionRegistry registry, Function mapper) {
   Iterable<String> keys = json.keys;
   var meta = fs._meta;
   for (String key in keys) {
-    var fi = meta.byTagAsString[key];
+    var fi = mapper(meta, key);
     if (fi == null) {
       if (registry == null) continue; // Unknown tag; skip
       fi = registry.getExtension(fs._messageName, int.parse(key));
